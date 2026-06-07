@@ -9,12 +9,30 @@ R package for loading, validating, cleaning, analysing and forecasting retail sa
 
 ## Dataset
 
-Dataset used in this project comes from the Kaggle competition:
+## Dataset
+
+This project uses data from the Kaggle competition:
+
+Store Sales - Time Series Forecasting
 
 https://www.kaggle.com/competitions/store-sales-time-series-forecasting
 
-The file train.csv is not included in the repository due to its size and should be downloaded separately from Kaggle.
-Store Sales Time Series Forecasting (Kaggle)
+Due to GitHub file size limitations, the original `train.csv` file is not included in this repository.
+
+To run the project, download the following files from Kaggle and place them in the `data_raw` directory:
+
+* `train.csv`
+* `stores.csv`
+* `holidays_events.csv`
+
+Expected folder structure:
+
+```text
+data_raw/
+├── train.csv
+├── stores.csv
+└── holidays_events.csv
+```
 
 ## Main Features
 
