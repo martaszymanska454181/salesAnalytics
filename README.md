@@ -9,8 +9,6 @@ R package for loading, validating, cleaning, analysing and forecasting retail sa
 
 ## Dataset
 
-## Dataset
-
 This project uses data from the Kaggle competition:
 
 Store Sales - Time Series Forecasting
