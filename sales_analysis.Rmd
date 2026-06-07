@@ -1,0 +1,191 @@
+---
+title: "Analiza danych sprzedażowych"
+author: "Marta Szymanska, Irena Skurat"
+date: "2026-06-07"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  warning = FALSE,
+  message = FALSE
+)
+
+devtools::load_all()
+```
+
+# Analiza danych sprzedażowych
+
+## Opis danych
+
+W projekcie wykorzystano dane ze zbioru Store Sales Time Series Forecasting dostępnego na platformie Kaggle.
+
+Zbiór zawiera informacje o sprzedaży produktów w 54 sklepach, obejmujące datę sprzedaży, kategorię produktu, liczbę produktów objętych promocją oraz charakterystyki sklepów.
+
+## Wczytanie danych
+
+```{r}
+sales <- load_sales_data(
+  "data_raw/train.csv",
+  "data_raw/stores.csv",
+  "data_raw/holidays_events.csv"
+)
+```
+
+## Walidacja danych
+
+```{r}
+validation <- validate_sales_ts(sales)
+
+validation
+```
+
+### Wyniki
+
+Na podstawie przeprowadzonej walidacji stwierdzono:
+
+- brak brakujących danych,
+- brak duplikatów,
+- brak ujemnych wartości sprzedaży,
+- brak niepoprawnych dat,
+- wykryto 4 przerwy w ciągu dat.
+
+## Czyszczenie danych
+
+```{r}
+sales_clean <- clean_sales_ts(sales)
+
+print(dim(sales_clean))
+```
+
+Dane zostały posortowane chronologicznie, usunięto ewentualne duplikaty oraz przygotowano zbiór do dalszej analizy.
+
+## Metryki biznesowe
+
+```{r}
+metrics <- compute_sales_metrics(sales_clean)
+
+metrics
+```
+
+## Wyniki analizy metryk biznesowych
+
+Na podstawie danych sprzedażowych obliczono podstawowe wskaźniki biznesowe.
+
+| Metryka                | Wartość       |
+| ---------------------- | ------------- |
+| Całkowita sprzedaż     | 1 073 644 952 |
+| Średnia sprzedaż       | 357.78        |
+| Mediana sprzedaży      | 11            |
+| Maksymalna sprzedaż    | 124 717       |
+| Minimalna sprzedaż     | 0             |
+| Odchylenie standardowe | 1101.998      |
+| Udział promocji        | 20.37%        |
+
+Interpretacja wyników wskazuje na znaczną zmienność sprzedaży pomiędzy obserwacjami. Mediana sprzedaży jest istotnie niższa od średniej, co sugeruje występowanie dużej liczby niskich wartości oraz nielicznych bardzo wysokich wartości sprzedaży.
+
+### Wnioski
+
+* Łączna sprzedaż przekroczyła 1 miliard jednostek.
+* Rozkład sprzedaży jest silnie asymetryczny, ponieważ mediana (11) jest znacznie niższa od średniej (357.78).
+* Występują bardzo wysokie wartości sprzedaży w wybranych okresach lub sklepach.
+* Około 20% obserwacji dotyczyło produktów objętych promocją.
+* Sprzedaż charakteryzuje się wysoką zmiennością, co potwierdza duże odchylenie standardowe.
+
+
+
+## Wizualizacja trendów sprzedażowych
+
+```{r}
+plot_sales_trends(sales_clean)
+```
+
+Wykres wskazuje na wyraźny wzrost całkowitej sprzedaży w latach 2013–2017. Widoczne są również okresowe spadki sprzedaży oraz zwiększająca się zmienność wartości sprzedaży w czasie.
+
+## Podsumowanie dla menedżera
+
+```{r}
+management_summary <- create_management_summary(sales_clean)
+
+management_summary
+```
+
+### Interpretacja wyników
+
+Na podstawie przeprowadzonej analizy:
+
+- sklep nr 44 osiągnął najwyższą całkowitą sprzedaż,
+- sklep nr 52 osiągnął najniższą całkowitą sprzedaż,
+- najwyższą sprzedaż odnotowano w mieście Quito,
+- kategorią generującą największą sprzedaż była GROCERY I,
+- średnia wartość sprzedaży wyniosła 357.78,
+- około 20.37% obserwacji dotyczyło produktów objętych promocją.
+
+Największy udział w całkowitej sprzedaży miała kategoria produktów spożywczych (GROCERY I), co wskazuje na jej kluczowe znaczenie dla działalności przedsiębiorstwa.
+```
+
+## Wpływ promocji na sprzedaż
+
+```{r, echo=FALSE}
+plot_promotion_impact(sales_clean)
+```
+
+Promocje stanowią istotny element strategii sprzedażowej przedsiębiorstwa. Wykres przedstawia średnią sprzedaż dla produktów objętych promocją oraz nieobjętych promocją.
+
+Widoczna różnica pomiędzy grupami wskazuje, że działania promocyjne wpływają na poziom sprzedaży i mogą stanowić skuteczne narzędzie zwiększania przychodów.
+
+## Prognozowanie sprzedaży (ARIMA)
+
+```{r, echo=FALSE}
+forecast_result <- create_prognosis(
+  sales_clean,
+  periods = 30
+)
+
+plot(forecast_result)
+```
+
+Model ARIMA został wykorzystany do prognozowania sprzedaży na kolejnych 30 okresów. 
+Wyniki wskazują na utrzymanie stabilnego poziomu sprzedaży przy zachowaniu charakterystycznych tygodniowych wahań. Model automatycznie wykrył sezonowość siedmiodniową, co jest zgodne z charakterem danych detalicznych. Przedziały ufności rozszerzają się wraz z horyzontem prognozy, co odzwierciedla rosnącą niepewność prognoz długoterminowych.
+
+
+
+## Prognozowanie sprzedaży (ETS)
+
+```{r, echo=FALSE}
+forecast_ets <- create_prognosis_ets(
+  sales_clean,
+  periods = 30
+)
+
+plot(forecast_ets)
+```
+
+Dla porównania wykorzystano również model ETS (Exponential Smoothing). Model ten bazuje na metodzie wygładzania wykładniczego i pozwala prognozować przyszłe wartości szeregu czasowego na podstawie obserwowanych trendów i sezonowości.
+
+Wyniki prognozy są zbliżone do modelu ARIMA, co zwiększa wiarygodność przewidywań dotyczących przyszłej sprzedaży.
+
+## Porównanie metod prognozowania
+
+W projekcie wykorzystano dwa modele prognozowania:
+
+- ARIMA,
+- ETS (Exponential Smoothing).
+
+Oba modele wskazują na utrzymanie wysokiego poziomu sprzedaży w kolejnych okresach. Uzyskane prognozy są zbliżone, co świadczy o stabilności trendów występujących w danych sprzedażowych.
+
+Zastosowanie dwóch niezależnych metod zwiększa wiarygodność prognoz oraz pozwala lepiej ocenić przyszłe wyniki sprzedażowe przedsiębiorstwa.
+
+
+## Wnioski końcowe
+
+W ramach projektu opracowano pakiet R umożliwiający kompleksową analizę szeregów czasowych danych sprzedażowych. Pakiet pozwala na automatyczne wczytywanie danych, ich walidację, czyszczenie, analizę oraz prognozowanie przyszłej sprzedaży.
+
+Przeprowadzona analiza wykazała, że dane sprzedażowe charakteryzują się dużą zmiennością oraz wyraźnym trendem wzrostowym w badanym okresie. Największe wartości sprzedaży obserwowano w sklepach zlokalizowanych w Quito, a dominującą kategorią produktową była grupa GROCERY I.
+
+Analiza wpływu promocji potwierdziła, że działania promocyjne mają istotny wpływ na poziom sprzedaży. Około 20% obserwacji dotyczyło produktów objętych promocją.
+
+Do prognozowania wykorzystano dwa modele szeregów czasowych: ARIMA oraz ETS (Exponential Smoothing). Oba modele wygenerowały zbliżone prognozy, wskazując na utrzymanie wysokiego poziomu sprzedaży w kolejnych okresach. Zastosowanie dwóch niezależnych metod zwiększyło wiarygodność uzyskanych wyników.
+
+Przygotowany pakiet może stanowić podstawę do dalszych analiz biznesowych oraz wspomagać proces podejmowania decyzji związanych z planowaniem sprzedaży.
+

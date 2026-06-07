@@ -1,0 +1,18 @@
+Package: salesAnalytics
+Type: Package
+Title: Sales Time Series Analysis Package
+Version: 0.1.0
+Authors@R: c(person("Marta","Szymanska", email="454181@wz.uw.edu.pl", role=c("aut","cre")), person("Irena","Skurat", role="aut"))
+Description: Package for loading, cleaning, validating,
+    analyzing and forecasting retail sales time series data.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports:
+    SALES,
+    dplyr,
+    readr,
+    ggplot2,
+    forecast,
+    scales
+Config/roxygen2/version: 8.0.0
